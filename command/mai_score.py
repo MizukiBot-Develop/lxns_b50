@@ -4,6 +4,7 @@ from typing import Optional
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, MessageSegment
 from nonebot.params import CommandArg, Depends
+from nonebot.exception import FinishedException  # 引入框架正常退出异常
 from loguru import logger as log
 
 from ..libraries.maimaidx_best_50 import generate
@@ -54,6 +55,8 @@ async def _(bot: Bot, event: MessageEvent, message: Message = CommandArg(), user
     try:
         img_res = await generate(qqid, username)
         await best50.finish(img_res, reply_message=True)
+    except FinishedException:
+        raise  # 显式放行正常退出信号，屏蔽错误日志
     except (UserNotBindLXNSError, UserNotBindFishError) as e:
         error_msg = str(UserNotBindLXNSError(is_official)) if isinstance(e, UserNotBindLXNSError) else str(UserNotBindFishError(is_official))
         if is_official:
@@ -75,6 +78,8 @@ async def _(bot: Bot, event: MessageEvent, message: Message = CommandArg(), user
     try:
         img_res = await generate(qqid, username, is_ap=True)
         await ap50.finish(img_res, reply_message=True)
+    except FinishedException:
+        raise
     except (UserNotBindLXNSError, UserNotBindFishError) as e:
         error_msg = str(UserNotBindLXNSError(is_official)) if isinstance(e, UserNotBindLXNSError) else str(UserNotBindFishError(is_official))
         if is_official:
@@ -104,6 +109,8 @@ async def _(event: MessageEvent, message: Message = CommandArg(), user_id: Optio
     try:
         data = await player_score_data(qqid, music)
         await minfo.finish(data, reply_message=True)
+    except FinishedException:
+        raise
     except Exception as e:
         await minfo.finish(str(e), reply_message=True)
 
@@ -130,6 +137,8 @@ async def _(message: Message = CommandArg()):
     try:
         pic = await music_global_data(music, level_index)
         await ginfo.finish(pic, reply_message=True)
+    except FinishedException:
+        raise
     except Exception:
         log.error(f"[ginfo] 全服统计资产渲染失败:\n{traceback.format_exc()}")
         await ginfo.finish("⚠️ 全服统计资产渲染失败。", reply_message=True)
@@ -163,5 +172,7 @@ async def _(message: Message = CommandArg()):
     try:
         result_text = score_line_data(music, level_index, float(target_score))
         await score.finish(result_text, reply_message=True)
+    except FinishedException:
+        raise
     except ValueError:
         await score.finish('目标达成率输入错误，请输入数字', reply_message=True)
