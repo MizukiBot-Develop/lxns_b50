@@ -28,6 +28,14 @@ class TokenNotFoundError(Exception):
     def __str__(self) -> str:
         return '未检测到查分器开放平台开发者密钥凭证。'
 
+class UserNotExistsError(Exception):
+    def __str__(self) -> str:
+        return '该用户不存在。'
+
+class MusicNotPlayError(Exception):
+    def __str__(self) -> str:
+        return '未游玩该谱面。'
+
 class UnknownError(Exception):
     def __str__(self) -> str:
         return '中继层发生未知异常。'

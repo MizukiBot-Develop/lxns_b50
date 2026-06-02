@@ -2,6 +2,7 @@ import copy
 
 from .image import rounded_corners
 from .maimaidx_best_50 import *
+from .maimaidx_error import UserNotFoundError, UserDisabledQueryError, UserNotExistsError, MusicNotPlayError
 from .maimaidx_music import Music, mai
 
 
