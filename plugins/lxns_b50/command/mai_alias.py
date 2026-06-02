@@ -4,6 +4,7 @@ import re
 import traceback
 from textwrap import dedent
 
+from loguru import logger as log
 from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
