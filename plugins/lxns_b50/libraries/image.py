@@ -87,8 +87,10 @@ class DrawText:
             # 逐字绘制以控制字间距
             font = ImageFont.truetype(self._font, size)
             x, y = pos_x, pos_y
-            # 基线偏移：从垂直中心(lm)到基线(ls)的大致偏移量
-            baseline_offset = size // 2
+            # 计算字符串实际 bbox，确定基线到中心的偏移
+            full_bbox = font.getbbox(text)
+            # bbox[1] 为负（基线以上），bbox[3] 为正（基线以下）
+            baseline_offset = -(full_bbox[1] + full_bbox[3]) // 2
             if anchor == 'lt':
                 pass  # lt → ls 无需偏移
             elif anchor in ('lm',):
