@@ -9,8 +9,12 @@ from .lib_music_db import music_db_cache, download_all_covers, _download_one_cov
 from .maimaidx_api_data import maiApi
 
 class Music(dict):
+    """支持递归属性访问的 dict 子类，嵌套 dict 也可通过属性访问"""
     def __getattr__(self, item):
-        return self.get(item)
+        val = self.get(item)
+        if isinstance(val, dict):
+            return Music(val)
+        return val
     def __setattr__(self, key, value):
         self[key] = value
 

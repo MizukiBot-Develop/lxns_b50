@@ -40,7 +40,7 @@ async def draw_music_info(
                 player = await maiApi.query_user_b50(qqid=qqid)
             else:
                 player = user
-            if music.basic_info.version == list(plate_to_dx_version.values())[-1]:
+            if music.basic_info.get('from') == list(plate_to_dx_version.values())[-1]:
                 bestlist = player.charts.dx
                 isfull = bool(len(bestlist) == 15)
             else:
@@ -66,7 +66,7 @@ async def draw_music_info(
         im.alpha_composite(Image.open(maimaidir / 'UI_CMN_TabTitle_NewSong.png').resize((249, 120)), (940, 100))
     songbg = Image.open(music_picture(music.id)).resize((280, 280))
     im.alpha_composite(rounded_corners(songbg, 17, (True, False, False, True)), (110, 180))
-    im.alpha_composite(Image.open(maimaidir / f'{music.basic_info.version}.png').resize((182, 90)), (800, 370))
+    im.alpha_composite(Image.open(maimaidir / f'{music.basic_info.get("from")}.png').resize((182, 90)), (800, 370))
     im.alpha_composite(Image.open(maimaidir / f'{music.type}.png').resize((80, 30)), (410, 375))
 
     title = music.title
@@ -172,7 +172,7 @@ async def draw_music_play_data(qqid: int, music_id: str) -> Union[str, MessageSe
         cover = Image.open(music_picture(music_id))
         im.alpha_composite(cover.resize((300, 300)), (100, 260))
         im.alpha_composite(Image.open(maimaidir / f'info-{category[music.basic_info.genre]}.png'), (100, 260))
-        im.alpha_composite(Image.open(maimaidir / f'{music.basic_info.version}.png').resize((183, 90)), (295, 205))
+        im.alpha_composite(Image.open(maimaidir / f'{music.basic_info.get("from")}.png').resize((183, 90)), (295, 205))
         im.alpha_composite(Image.open(maimaidir / f'{music.type}.png').resize((55, 20)), (350, 560))
         
         color = (124, 129, 255, 255)
