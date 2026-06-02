@@ -45,19 +45,26 @@ class MaiMusic:
     # ==========================================
     @property
     def total_level_data(self) -> Dict[str, Dict[str, MusicList]]:
-        """按定数等级分组：{等级: {定数值: MusicList}}"""
+        """按定数等级分组：{等级: {定数值: MusicList}}
+        每组内为单谱面条目，每个条目有 id, ds, lv(难度索引), type, title"""
         res: Dict[str, Dict[str, MusicList]] = {}
         for music in self.total_list:
-            for lv in music.get('level', []):
+            for idx, lv in enumerate(music.get('level', [])):
                 if lv not in res:
                     res[lv] = {}
-                # 找出该难度对应的定数
-                idx = music.level.index(lv)
                 ds = str(music.ds[idx]) if idx < len(music.ds) else '0'
                 if ds not in res[lv]:
                     res[lv][ds] = MusicList()
-                if music not in res[lv][ds]:
-                    res[lv][ds].append(music)
+                # 构建单谱面条目，包含 lv 难度索引
+                entry = Music({
+                    'id': music.id,
+                    'title': music.title,
+                    'type': music.type,
+                    'ds': music.ds[idx] if idx < len(music.ds) else 0,
+                    'lv': str(idx),
+                })
+                if entry not in res[lv][ds]:
+                    res[lv][ds].append(entry)
         return res
 
     async def get_music(self) -> None:
