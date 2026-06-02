@@ -10,6 +10,7 @@ from nonebot.adapters.onebot.v11 import (
     Message,
     MessageEvent,
     MessageSegment,
+    PrivateMessageEvent,
 )
 from nonebot.params import CommandArg, RegexMatched
 from nonebot.permission import SUPERUSER
@@ -27,9 +28,9 @@ alias_song          = on_regex(r'^(id)?\s?(.+)\s?有什么别[名称]$', re.IGNO
 
 
 @update_alias.handle()
-async def _(event: MessageEvent):
+async def _(event: PrivateMessageEvent):
     try:
-        await mai.get_music_alias()
+        await mai.get_music()
         log.info('手动更新别名库成功')
         await update_alias.send('手动更新别名库成功')
     except Exception as e:
