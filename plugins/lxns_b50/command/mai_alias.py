@@ -48,8 +48,8 @@ async def _(event: MessageEvent, message: Message = CommandArg()):
     if not mai.total_list.by_id(song_id):
         await alias_local_apply.finish(f'未找到ID「{song_id}」的曲目', reply_message=True)
 
-    local_exist = mai.total_alias_list.by_id(song_id)
-    if local_exist and alias_name.lower() in local_exist[0].Alias:
+    local_exist = mai.total_alias_list.get(song_id)
+    if local_exist and alias_name.lower() in local_exist:
         await alias_local_apply.finish(f'本地别名库已存在该别名', reply_message=True)
     
     issave = await update_local_alias(song_id, alias_name)
@@ -66,20 +66,24 @@ async def _(match = RegexMatched()):
     name = match.group(2)
     aliases = None
     if findid and name.isdigit():
-        alias_id = mai.total_alias_list.by_id(name)
-        if not alias_id:
+        alias_aliases = mai.total_alias_list.get(name)
+        if not alias_aliases:
             await alias_song.finish(
                 '未找到此歌曲\n可以使用「添加本地别名」指令给该乐曲添加别名', 
                 reply_message=True
             )
         else:
-            aliases = alias_id
+            aliases = [type('_Alias', (), {'SongID': int(name), 'Alias': alias_aliases})()]
     else:            
-        aliases = mai.total_alias_list.by_alias(name)
+        matched = [(sid, als) for sid, als in mai.total_alias_list.items()
+                   if name.lower() in [a.lower() for a in als]]
+        if matched:
+            aliases = [type('_Alias', (), {'SongID': int(sid), 'Alias': als})()
+                       for sid, als in matched]
         if not aliases:
             if name.isdigit():
-                alias_id = mai.total_alias_list.by_id(name)
-                if not alias_id:
+                alias_aliases = mai.total_alias_list.get(name)
+                if not alias_aliases:
                     await alias_song.finish(
                         '未找到此歌曲\n可以使用「添加本地别名」指令给该乐曲添加别名', 
                         reply_message=True

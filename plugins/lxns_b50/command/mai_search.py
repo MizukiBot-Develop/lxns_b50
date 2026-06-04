@@ -13,7 +13,7 @@ from nonebot.params import CommandArg, Endswith, RegexMatched
 
 from ..config import SONGS_PER_PAGE, diffs
 from ..libraries.image import text_to_bytes_io
-from ..libraries.maimaidx_model import AliasStatus
+from ..libraries.maimaidx_model import Alias, AliasStatus
 from ..libraries.maimaidx_music import guess, mai, maiApi
 from ..libraries.maimaidx_music_info import draw_music_info
 
@@ -255,7 +255,14 @@ async def _(event: MessageEvent, end: str = Endswith()):
         '※ 如果是歌名的一部分，请使用「查歌」指令查询哦。'
     )
     # 别名
-    alias_data = mai.total_alias_list.by_alias(name)
+    alias_data = None
+    name_lower = name.lower()
+    matched = [(sid, aliases) for sid, aliases in mai.total_alias_list.items()
+               if name_lower in [a.lower() for a in aliases]
+               or any(name_lower in a.lower() for a in aliases)]
+    if matched:
+        alias_data = [Alias(SongID=int(sid), Name="", Alias=aliases)
+                      for sid, aliases in matched]
     if not alias_data:
         obj = await maiApi.get_songs(name)
         if obj:
