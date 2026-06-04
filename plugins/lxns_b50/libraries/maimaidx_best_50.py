@@ -334,6 +334,7 @@ async def generate(qqid: Optional[int] = None, username: Optional[str] = None, i
         for chart in userinfo.charts.sd + userinfo.charts.dx:
             music = mai.total_list.by_id(str(chart.song_id))
             if music:
+                chart.song_id = int(music.id)
                 try:
                     chart.ds = music.ds[chart.level_index]
                 except (IndexError, TypeError):
@@ -349,6 +350,7 @@ async def generate(qqid: Optional[int] = None, username: Optional[str] = None, i
             if not chart.ds and chart.type.lower() == 'dx':
                 dx_music = mai.total_list.by_id(str(chart.song_id + 10000))
                 if dx_music:
+                    chart.song_id = int(dx_music.id)
                     try:
                         chart.ds = dx_music.ds[chart.level_index]
                     except (IndexError, TypeError):
