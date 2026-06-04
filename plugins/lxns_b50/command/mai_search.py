@@ -261,8 +261,11 @@ async def _(event: MessageEvent, end: str = Endswith()):
                if name_lower in [a.lower() for a in aliases]
                or any(name_lower in a.lower() for a in aliases)]
     if matched:
-        alias_data = [Alias(SongID=int(sid), Name="", Alias=aliases)
-                      for sid, aliases in matched]
+        alias_data = []
+        for sid, aliases in matched:
+            music = mai.total_list.by_id(sid)
+            name_title = music.title if music else ""
+            alias_data.append(Alias(SongID=int(sid), Name=name_title, Alias=aliases))
     if not alias_data:
         obj = await maiApi.get_songs(name)
         if obj:
