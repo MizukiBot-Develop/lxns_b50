@@ -872,18 +872,30 @@ async def player_score_data(qqid: int, music: Music) -> Union[MessageSegment, st
     try:
         records: List[Union[PlayInfoDefault, PlayInfoDev]] = []
 
-        # 策略一：使用水鱼 Developer-Token 查询单曲成绩
-        if maiApi.token:
-            dev_records = await maiApi.query_user_post_dev(qqid, music.id)
-            if dev_records:
-                records = dev_records
+        # 策略一：落雪 API 查询单曲成绩
+        lxns_records = await maiApi.query_user_song_score(qqid, music.id)
+        if lxns_records:
+            records = lxns_records
+            # 补全 ds 定数
+            for r in records:
+                m = mai.total_list.by_id(str(r.song_id))
+                if m and r.level_index < len(m.ds):
+                    r.ds = m.ds[r.level_index]
+                elif not r.ds and r.level_index < len(music.ds):
+                    r.ds = music.ds[r.level_index]
         else:
-            # 策略二：通过 plate 查询获取全部成绩后过滤
-            version = list(set(_v for _v in list(plate_to_dx_version.values())))
-            plate_records = await maiApi.query_user_plate(qqid=qqid, version=version)
-            for r in plate_records:
-                if str(r.song_id) == music.id:
-                    records.append(r)
+            # 策略二：使用水鱼 Developer-Token 查询单曲成绩
+            if maiApi.token:
+                dev_records = await maiApi.query_user_post_dev(qqid, music.id)
+                if dev_records:
+                    records = dev_records
+            else:
+                # 策略三：通过 plate 查询获取全部成绩后过滤
+                version = list(set(_v for _v in list(plate_to_dx_version.values())))
+                plate_records = await maiApi.query_user_plate(qqid=qqid, version=version)
+                for r in plate_records:
+                    if str(r.song_id) == music.id:
+                        records.append(r)
 
         if not records:
             return f'未查询到您在「{music.title}」上的游玩数据。'

@@ -92,6 +92,70 @@ class MaiApi:
                 log.error(f"拉取落雪 Rating 变动历史记录失败: {e}")
         return []
 
+    async def query_user_song_score(self, qqid: int, music_id: str) -> Optional[List[ChartInfo]]:
+        """
+        使用落雪 API 查询玩家单曲成绩（所有难度）。
+
+        Params:
+            `qqid`: 用户QQ
+            `music_id`: 曲目ID
+        Returns:
+            `Optional[List[ChartInfo]]`
+        """
+        from .maimaidx_model import ChartInfo
+        if not maiconfig.lxnstoken:
+            return None
+        try:
+            # 先通过 QQ 获取 friend_code
+            async with httpx.AsyncClient(timeout=15) as client:
+                profile_res = await client.get(
+                    f"{LXNS_BASE}/maimai/player/qq/{qqid}",
+                    headers=self.headers
+                )
+            if profile_res.status_code != 200:
+                return None
+            pdata = profile_res.json().get("data", {})
+            friend_code = pdata.get("friend_code")
+            if not friend_code:
+                return None
+
+            # 查询单曲所有谱面成绩
+            async with httpx.AsyncClient(timeout=15) as client:
+                res = await client.get(
+                    f"{LXNS_BASE}/maimai/player/{friend_code}/bests",
+                    params={"song_id": int(music_id)},
+                    headers=self.headers
+                )
+            if res.status_code != 200:
+                return None
+            scores = res.json()
+            if isinstance(scores, dict):
+                scores = scores.get("data", scores)
+            if not isinstance(scores, list):
+                return None
+
+            result = []
+            for s in scores:
+                result.append(ChartInfo(
+                    song_id=s.get("id", 0),
+                    title=s.get("song_name", ""),
+                    level_index=s.get("level_index", 0),
+                    level=s.get("level", ""),
+                    achievements=s.get("achievements", 0),
+                    dxScore=s.get("dx_score", 0),
+                    rate=s.get("rate", ""),
+                    fc=s.get("fc") or "",
+                    fs=s.get("fs") or "",
+                    type=s.get("type", "standard"),
+                    level_label="",
+                    ds=0,
+                    ra=int(s.get("dx_rating", 0))
+                ))
+            return result
+        except Exception as e:
+            log.warning(f"落雪单曲成绩查询失败(qqid={qqid}, music_id={music_id}): {e}")
+            return None
+
     async def query_user_b50(self, qqid: Optional[int] = None, username: Optional[str] = None, is_ap: bool = False) -> Any:
         """
         获取用户 Best 50 数据。
